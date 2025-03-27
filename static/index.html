@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocTalk - Interactive Document Chatbot</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8fafc;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 90%;
+            border: 1px solid #ddd;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-bottom: 10px;
+        }
+
+        img.illustration {
+            width: 200px;
+            margin-bottom: 20px;
+        }
+
+        input, button {
+            margin: 10px;
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+
+        input {
+            width: 80%;
+            max-width: 400px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #uploadStatus {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .success { color: green; }
+        .error { color: red; }
+
+        #answer {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            padding: 15px;
+            margin-top: 20px;
+            width: 80%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            display: none;
+            border: 1px solid #eee;
+        }
+
+        hr {
+            margin: 30px auto;
+            width: 50%;
+            height: 2px;
+            background-color: #ddd;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>DocTalk - Interactive Document Chatbot</h2>
+
+        <!-- Local Illustration from /static folder -->
+        <img class="illustration" src="/static/images/doctalk.jpg" alt="Document Talking Illustration">
+
+        <!-- File Upload Section -->
+        <div>
+            <input type="file" id="fileInput">
+            <button onclick="uploadFile()">Upload Document</button>
+            <p id="uploadStatus"></p>
+        </div>
+
+        <hr>
+
+        <!-- Question Section -->
+        <div>
+            <input type="text" id="questionInput" placeholder="Ask something about the document...">
+            <button onclick="askQuestion()">Ask DocTalk</button>
+        </div>
+
+        <!-- Answer Section -->
+        <div id="answer"></div>
+    </div>
+
+    <script>
+        async function uploadFile() {
+            let fileInput = document.getElementById("fileInput");
+            let file = fileInput.files[0];
+
+            if (!file) {
+                alert("Please select a file first!");
+                return;
+            }
+
+            let formData = new FormData();
+            formData.append("file", file);
+
+            document.getElementById("uploadStatus").innerText = "Uploading...";
+            document.getElementById("uploadStatus").className = "";
+
+            try {
+                let response = await fetch("http://127.0.0.1:8000/upload", {
+                    method: "POST",
+                    body: formData
+                });
+
+                let result = await response.json();
+
+                if (response.status === 201) {
+                    document.getElementById("uploadStatus").innerText = "✅ Document uploaded successfully!";
+                    document.getElementById("uploadStatus").className = "success";
+                } else {
+                    throw new Error(result.message || "Upload failed");
+                }
+
+            } catch (error) {
+                document.getElementById("uploadStatus").innerText = "❌ Error: " + error.message;
+                document.getElementById("uploadStatus").className = "error";
+            }
+        }
+
+        async function askQuestion() {
+            let question = document.getElementById("questionInput").value;
+
+            if (!question) {
+                alert("Please enter a question!");
+                return;
+            }
+
+            document.getElementById("answer").style.display = "block";
+            document.getElementById("answer").innerText = "Fetching answer...";
+
+            try {
+                let response = await fetch(`http://127.0.0.1:8000/search?query=${encodeURIComponent(question)}`);
+                let result = await response.json();
+
+                document.getElementById("answer").innerText = result.answer;
+            } catch (error) {
+                document.getElementById("answer").innerText = "❌ Failed to fetch answer!";
+            }
+        }
+    </script>
+
+</body>
+</html>

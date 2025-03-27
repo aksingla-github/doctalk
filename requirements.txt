@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+langchain
+faiss-cpu
+sentence-transformers
+transformers
+numpy
+torch
+langchain-community
+pdfplumber
+accelerate
